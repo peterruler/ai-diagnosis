@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Record Diagnosis</h1>
-    <p> prompt=Categorize the following text into firstname, familyname, age, sex, blood pressure, body temperature, and further vital parameters, diagnosis number one to number five:\n\n{text}",
+    <p> prompt=Categorize the following text into firstname, familyname, age, sex, blood pressure, body temperature, and further vital parameters, diagnosis number one to number five
     </p>
     <button id="recordButton">Record</button>
     <button id="stopButton" disabled>Stop</button>
@@ -16,7 +16,7 @@
         <h2>Transcription</h2>
         <p id="transcription"></p>
         <h2>Categories</h2>
-        <p id="categories"></p>
+        <ul id="categories"></ul>
     </div>
     <script>
         let mediaRecorder;
@@ -46,7 +46,26 @@
 
                 const result = await response.json();
                 document.getElementById('transcription').innerText = result.transcription;
-                document.getElementById('categories').innerText = result.categories;
+
+                const categories = JSON.parse(result.categories);
+                const categoriesList = document.getElementById('categories');
+                categoriesList.innerHTML = '';
+
+                for (const [key, value] of Object.entries(categories)) {
+                    if (key === 'diagnosis') {
+                        for (const [diagKey, diagValue] of Object.entries(value)) {
+                            if (diagValue) {
+                                const listItem = document.createElement('li');
+                                listItem.innerText = `Diagnosis ${diagKey}: ${diagValue}`;
+                                categoriesList.appendChild(listItem);
+                            }
+                        }
+                    } else {
+                        const listItem = document.createElement('li');
+                        listItem.innerText = `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`;
+                        categoriesList.appendChild(listItem);
+                    }
+                }
             };
 
             document.getElementById('recordButton').disabled = true;
