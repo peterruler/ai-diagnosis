@@ -133,3 +133,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# custom
+*.mp3
