@@ -3,6 +3,7 @@ from flask_cors import CORS
 import openai
 from dotenv import load_dotenv
 import os
+import uuid
 
 app = Flask(__name__, static_folder='templates')
 CORS(app)
@@ -22,20 +23,21 @@ def process_audio():
         return jsonify({'error': 'No audio file provided'}), 400
 
     audio_file = request.files['audio']
+    audio_filename = request.form.get('filename')
 
-    if not audio_file.filename.endswith(('.mp3', '.wav', '.m4a')):
-        return jsonify({'error': 'Invalid audio file format'}), 400
+    if not audio_filename or not audio_filename.endswith('.mp3'):
+        return jsonify({'error': 'Invalid audio file format. Only MP3 files are allowed.'}), 400
 
     # Save and process the audio file
-    audio_file.save("temp_audio.mp3")
+    audio_file.save(audio_filename)
 
     try:
         # Transcription
-        audio_file = open("temp_audio.mp3", "rb")
-        transcription = openai.Audio.transcribe(
-            model="whisper-1", 
-            file=audio_file,
-        )
+        with open(audio_filename, "rb") as f:
+            transcription = openai.Audio.transcribe(
+                model="whisper-1", 
+                file=f,
+            )
         text = transcription['text']
 
         # Categorization using GPT
@@ -60,6 +62,10 @@ def process_audio():
 
     except Exception as e:
         return jsonify({'error': f"Error during GPT processing: {str(e)}"}), 500
+
+    finally:
+        # Clean up the saved audio file
+        os.remove(audio_filename)
 
 if __name__ == '__main__':
     app.run(debug=True)

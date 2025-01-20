@@ -37,7 +37,9 @@
                 document.getElementById('audioPlayback').src = audioUrl;
 
                 const formData = new FormData();
-                formData.append('audio', audioBlob, 'temp_audio.mp3');
+                const audioFilename = `${crypto.randomUUID()}.mp3`;
+                formData.append('audio', audioBlob, audioFilename);
+                formData.append('filename', audioFilename);
 
                 const response = await fetch('/process_audio', {
                     method: 'POST',
@@ -59,6 +61,12 @@
                                 listItem.innerText = `Diagnosis ${diagKey}: ${diagValue}`;
                                 categoriesList.appendChild(listItem);
                             }
+                        }
+                    } else if (typeof value === 'object' && value !== null) {
+                        for (const [subKey, subValue] of Object.entries(value)) {
+                            const listItem = document.createElement('li');
+                            listItem.innerText = `${subKey.charAt(0).toUpperCase() + subKey.slice(1)}: ${subValue}`;
+                            categoriesList.appendChild(listItem);
                         }
                     } else {
                         const listItem = document.createElement('li');
